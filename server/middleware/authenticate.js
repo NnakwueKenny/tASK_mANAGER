@@ -14,6 +14,4 @@ const authenticate = (req, res, next) => {
     };
 };
 
-console.log(process.env.accessToken)
-
 module.exports = authenticate

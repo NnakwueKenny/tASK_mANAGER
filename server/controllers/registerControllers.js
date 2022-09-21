@@ -2,8 +2,10 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const register = async (req, res, next) => {
-    const {firstname, lastname, email, phone, password, confirmpassword} = req.body;
+const register = async (req, res) => {
+    console.log('Request Body:', req.body);
+    const {email, username, password, confirmPassword} = req.body;
+    console.log(email, username, password, confirmPassword);
     bcrypt.hash(password, 10, (err, hashedPassword) => {
         if (err) {
             res.json({
@@ -11,27 +13,24 @@ const register = async (req, res, next) => {
             })
         }
 
-        if (confirmpassword === password) {
+        if (confirmPassword === password) {
             let user = new User({
-                firstname: firstname.toLowerCase(),
-                lastname: lastname.toLowerCase(),
                 email: email,
-                phone: phone,
+                username: username,
                 password: hashedPassword,
                 tasks: []
             });
 
             user.save()
-            .then(user => {
-                res.json({
-                    message: `User account for ${firstname} ${lastname} successfully created!`
+            .then((user) => res.json( {
+                    message: `User account for ${user.email} has been created successfully!`
                 })
-            })
+            )
             .catch(err => {
-                res.json({
+                return {
                     err,
-                    meesage: 'Oops, an error has occured!'
-                })
+                    message: 'Oops, an error has occured!'
+                }
             })
         } else {
             res.json(
