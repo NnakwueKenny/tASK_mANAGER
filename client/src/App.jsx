@@ -13,8 +13,17 @@ import RegisterConfirm from './views/confirmRegister';
   getRoute();
 
 const App = () => {
+  const userBrowserData = localStorage.getItem('taskManagerUserData');
+  console.log(userBrowserData);
   const [isLoggedIn, setLogin] = useState(false);
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      console.log('Redirecting');
+      document.querySelector('.register-redirect').click();
+      console.log('Redirected');
+    }
+  })
   // const checkForLogin = () => {
   //   if (isLoggedIn) {
   //    window.location.href = '/'
@@ -43,7 +52,6 @@ const App = () => {
             <Routes>
               <Route path='/' element={<Home />}/>
               <Route path='/profile' element={<Profile />}/>
-              <Route path='/register' element={<Register />}/>
               <Route path='/register-confirmation' element={<RegisterConfirm />}/>
               {/*<Route path='*' element={<ErrorPage />}/>*/}
             </Routes>
@@ -52,28 +60,32 @@ const App = () => {
 
           { /*  Footer Section starts here   */ }
           <footer className='w-full absolute bottom-0'>
-              <div className='flex w-full border-x border-t border-x border-x-cyan-500 border-t-cyan-500 py-4 rounded-tr-3xl rounded-tl-3xl'>
-                <span className='flex justify-center w-1/2'>
-                  <Link className='' to='/'><i className='fa fa-home'></i></Link>
-                </span>
-                <span className='flex justify-center w-1/2'>
-                  <i className='fa fa-user'></i>
-                </span>
-                <div className='w-full flex justify-center absolute -top-7'>
-                  <button type='button' className='flex justify-center items-center w-14 h-14 border-[1.4px] border-cyan-500 rounded-full bg-cyan-500'>
-                    <i className='fa fa-plus text-cyan-50'></i>
-                  </button>
-                </div>
+            <div className='flex w-full border-x border-t border-x border-x-cyan-500 border-t-cyan-500 py-4 rounded-tr-3xl rounded-tl-3xl'>
+              <span className='flex justify-center w-1/2'>
+                <Link className='' to='/'><i className='fa fa-home'></i></Link>
+              </span>
+              <span className='flex justify-center w-1/2'>
+                <i className='fa fa-user'></i>
+              </span>
+              <div className='w-full flex justify-center absolute -top-7'>
+                <button type='button' className='flex justify-center items-center w-14 h-14 border-[1.4px] border-cyan-500 rounded-full bg-cyan-500'>
+                  <i className='fa fa-plus text-cyan-50'></i>
+                </button>
               </div>
+            </div>
           </footer>
           { /*  Footer Section starts here   */ }
           </div>
         </div>
         :
         <div>
+          <Link to='/register' className='sr-only register-redirect'></Link>
           <Routes>
-            <Route path='/register' element={<Register />}/>
-            <Route path='/login' element={<Login />}/>
+            <Route path='/register' element={<Register/>}/>
+            <Route path='/login' element={<Login
+              isLoggedIn = {isLoggedIn}
+              setLogin = {setLogin}
+            />}/>
           </Routes>
         </div>
       }

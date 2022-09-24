@@ -48,7 +48,7 @@ const Register = (props) => {
       <React.Fragment>
         <div>
           {
-            loading &&
+            registerMessage !=='' &&
             <div className='absolute top-0 left-0 h-full w-full flex flex-col justify-center items-center bg-white'>
               <div className='flex flex-col items-center w-full max-w-xl px-4'>
                 <h1 className='text-4xl md:text-5xl pb-8 text-green-500'>Congratulations!</h1>
@@ -64,7 +64,7 @@ const Register = (props) => {
           }
         </div>
       </React.Fragment>
-      {  (registerMessage === '' || !loading) &&
+      {  (registerMessage === '') &&
         <div className='flex flex-col gap-4 w-full max-w-2xl'>
           <form className="register-user flex flex-col gap-4 h-full">
             <div>

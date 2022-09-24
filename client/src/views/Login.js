@@ -4,7 +4,7 @@ import Preloader1 from '../components/preloaders/preloader1';
 
 // import {Label, TextInput, Checkbox, Button } from 'flowbite-react';
 
-const Login = (props) => {
+const Login = ({isLoggedIn, setLogin, darkMode}) => {
 
   const [loginMessage, setLoginMessage] = useState('');
   const [loading, setLoading] = useState(false)
@@ -14,6 +14,7 @@ const Login = (props) => {
     const formData = {};
     console.log(formClass);
     const formInput = formClass.querySelectorAll('input');
+
     await formInput.forEach(item => {
       if (item.type !== 'checkbox') {
         formData[`${item.name}`] = item.value
@@ -31,9 +32,11 @@ const Login = (props) => {
     )
     .then(res => res.json())
     .then(data => {
-      setLoading(false);
       setLoginMessage(data.message);
-      console.log(loginMessage);
+      console.log(data.message);
+      setLogin(true);
+      document.querySelector('.home').click();
+      console.log('User Successfully logged in!😊')
     })
     .catch(err => {
       return {
@@ -42,10 +45,19 @@ const Login = (props) => {
     });
   }
   
-  const darkMode = props.darkMode? 'text-gray-50  bg-gray-800': 'text-gray-500';
+  const darkmode = darkMode? 'text-gray-50  bg-gray-800': 'text-gray-500';
   return (
-    <div className={`flex flex-col w-full h-screen items-center justify-center px-6 ${darkMode}`}>
-      {  (loginMessage === '' || loading === false) &&
+    <div className={`flex flex-col w-full h-screen items-center justify-center px-6 ${darkmode}`}>
+      <Link to='/' className='sr-only home'></Link>
+      <React.Fragment>
+        <div>
+          {
+            loading &&
+            <Preloader1 color={'green'}/>
+          }
+        </div>
+      </React.Fragment>
+      {  (isLoggedIn === '' || loading === false) &&
         <div className='flex flex-col gap-4 w-full max-w-2xl'>
             <form className="register-user flex flex-col gap-4 h-full">
                 <div>

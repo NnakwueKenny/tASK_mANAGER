@@ -13,7 +13,7 @@ const login = async (req, res, next) => {
                         {error: err}
                     )
                 }
-                if (result) {
+                try {
                     let accessToken = jwt.sign(
                         {email: user.email},
                         process.env.accessToken,
@@ -28,7 +28,7 @@ const login = async (req, res, next) => {
                     user.accessToken = accessToken;
                     console.log(user);
                     user.save()
-                } else {
+                } catch(err) {
                     res.json(
                         {
                             message: 'Password does not match!'
