@@ -14,10 +14,10 @@ import RegisterConfirm from './views/confirmRegister';
 
 const App = () => {
   const userBrowserData = localStorage.getItem('taskManagerUserData');
-  console.log(userBrowserData);
   const [isLoggedIn, setLogin] = useState(false);
 
   useEffect(() => {
+    console.log(userBrowserData);
     if (!isLoggedIn) {
       console.log('Redirecting');
       document.querySelector('.register-redirect').click();
@@ -53,7 +53,7 @@ const App = () => {
               <Route path='/' element={<Home />}/>
               <Route path='/profile' element={<Profile />}/>
               <Route path='/register-confirmation' element={<RegisterConfirm />}/>
-              {/*<Route path='*' element={<ErrorPage />}/>*/}
+              <Route path='/*' element={<ErrorPage />}/>
             </Routes>
           </main>
           { /*  Main Section ends here   */ }
@@ -86,6 +86,7 @@ const App = () => {
               isLoggedIn = {isLoggedIn}
               setLogin = {setLogin}
             />}/>
+            <Route path='/*' element={<ErrorPage />}/>
           </Routes>
         </div>
       }

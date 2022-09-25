@@ -1,43 +1,63 @@
-const User = require('../models/User');
+const UserModel = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
     console.log('Request Body:', req.body);
     const {email, username, password, confirmPassword} = req.body;
+    // console.log('SPLITTED PASSWORD', password.split(' ').join('').length);
     console.log(email, username, password, confirmPassword);
-    bcrypt.hash(password, 10, (err, hashedPassword) => {
+
+    UserModel.findOne({
+        email: email
+    }, (err, userExists) => {
         if (err) {
-            res.json({
-                error: err
-            })
+            return res.status(422).send(err);
         }
-
-        if (confirmPassword === password) {
-            let user = new User({
-                email: email,
-                username: username,
-                password: hashedPassword,
-                tasks: []
+        if (userExists) {
+            console.log('User already exists.')
+            return res.status(422).send({
+                error: 'User already exists.'
             });
-
-            user.save()
-            .then((user) => res.json( {
-                    message: `User account for ${user.email} has been created successfully!`
-                })
-            )
-            .catch(err => {
-                return {
-                    err,
-                    message: 'Oops, an error has occured!'
-                }
-            })
         } else {
-            res.json(
-                {message: 'Passwords do not match!'}
-            )
+            bcrypt.hash(password, 10, (err, hashedPassword) => {
+                if (err) {
+                    res.json({
+                        error: err
+                    })
+                }
+                
+                if (confirmPassword === password) {
+                    //  && (password !== '' || confirmPassword !== '')
+                    const user = new UserModel({
+                        email: email,
+                        username: username,
+                        password: hashedPassword,
+                        tasks: []   
+                    });
+        
+                    user.save()
+                    .then((user) => res.json( {
+                            message: `User account for ${user.email} has been created successfully!`
+                        })
+                    )
+                    .catch(err => {
+                        return {
+                            err,
+                            error: 'Oops, an error has occured!'
+                        }
+                    })
+                } else {
+                    // if (password === '' || confirmPassword === '') 
+                    let noPassword, noConfirmPassword;
+
+                    res.json(
+                        {passwordMismatch: 'Passwords do not match!'}
+                    )
+                }
+            });
         }
-    })
+    });
 }
 
 module.exports = {

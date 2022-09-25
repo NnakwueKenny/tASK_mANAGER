@@ -6,20 +6,102 @@ import Preloader1 from '../components/preloaders/preloader1';
 
 const Register = (props) => {
 
+  const timeoutDisplay = (target, value) => {
+    setTimeout(() => {
+      target(value);
+    }, 2000);
+  }
   const [registerMessage, setRegisterMessage] = useState('');
-  const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [allowClickButton, setAllowClickButton] = useState(false);
 
-  const registerUser = async (formClass) => {
-    setLoading(true);
-    const formData = {};
-    console.log(formClass);
-    const formInput = formClass.querySelectorAll('input');
-    await formInput.forEach(item => {
-      if (item.type !== 'checkbox') {
-        formData[`${item.name}`] = item.value
+  // Form data section
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword , setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({});
+
+  // Validate form data
+  const [isValidEmail, setIsValidEmail] = useState('');
+  const [isValidUser, setIsValidUser] = useState('');
+  const [isValidPass, setIsValidPass] = useState('');
+  const [isValidConfirmPass, setIsValidConfirmPAss] = useState('');
+
+  const [passValidateValues, setPassValidateValues] = useState([]);
+
+  const validateEmail = (email) => {
+    const validRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
+    if (email.split(' ').join('').length > 0) {
+      if (email.match(validRegex)) {
+        setIsValidEmail(true);
+        return true;
+      } else {
+        setIsValidEmail(false);
+        return false;
+      }
+    } else {
+      setIsValidEmail(false);
+    }
+  }
+
+  const validateUserName = (username) => {
+    if (username.length >= 8 && /\s/.test(username) === false) {
+      console.log(username.length);
+      setIsValidUser(true);
+    } else {
+      setIsValidUser(false);
+      timeoutDisplay(setIsValidUser, '');
+    }
+  }
+
+  const validatePassword = (password) => {
+    console.log('');
+    const matchLowerCaseLetters = password.match(/[a-z]/g);
+    const matchUpperCaseLetters = password.match(/[A-Z]/g);
+    const matchNumbers = password.match(/[0-9]/g);
+    if (matchLowerCaseLetters && matchUpperCaseLetters && matchNumbers && password.length >= 8) {
+      console.log('Password has lowercase letter(s)');
+      setPassValidateValues([]);
+    } else {
+      if (!matchLowerCaseLetters) {
+        setPassValidateValues(prevData => {
+          return [
+            ...prevData,
+  
+          ]
+        });
+      }
+      setPassValidateValues(prevData => {
+        return [
+          ...prevData,
+
+        ]
+      });
+    }
+  }
+
+  const validateForm = async(email, username, password, confirmPassword) => {
+    validateEmail(email);
+    validateUserName(username);
+  }
+
+  useEffect(() => {
+    setFormData(() => {
+      return {
+        email: email,
+        username: username,
+        password: password,
+        confirmPassword: confirmPassword
       }
     })
-    // console.log(formData)
+  },[email, username, password, confirmPassword])
+
+  const registerUser = async () => {
+    validateForm(email, username);
+    // setLoading(true);
     await fetch('http://localhost:3500/user/register',
       {
         headers: {
@@ -32,8 +114,21 @@ const Register = (props) => {
     .then(res => res.json())
     .then(data => {
       setLoading(false);
-      setRegisterMessage(data.message);
-      console.log(registerMessage);
+      const {error, passwordMismatch, message} = data;
+      console.log(error, passwordMismatch, message);
+      if (error) {
+        setErrorMessage(error);
+        setTimeout(() => {
+          setErrorMessage('')
+        }, 3000);
+      } else if (message) {
+        setRegisterMessage(message);
+      } else if (passwordMismatch) {
+        setErrorMessage(passwordMismatch);
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+      }
     })
     .catch(err => {
       return {
@@ -72,6 +167,10 @@ const Register = (props) => {
               <p className='text-lg pb-1 font-semibold'>Create an Account</p>
             </div>
             <div>
+              {
+                errorMessage !== '' &&
+                <span className='text-red-500 font-semibold'>{errorMessage}</span>
+              }
               <div className="mb-2 block">
                 <label
                   className='sr-only'
@@ -81,64 +180,87 @@ const Register = (props) => {
                 id="email"
                 name='email'
                 type="email"
-                placeholder="Your Email"
+                placeholder="Email *"
                 required={true}
                 shadow={true}
+                onChange={(e) => {setEmail(e.currentTarget.value)}}
                 className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
               />
+              {
+                isValidEmail === false &&
+                <span className='inline-flex pt-2 italic text-red-500 font-normal'>Invalid email address</span>
+              }
             </div>
-              <div>
-                <div className="mb-2 block">
-                  <label
-                    className='sr-only'
-                    htmlFor="username">Username</label>
-                </div>
-                <input
-                  id="username"
-                  name='username'
-                  type="text"
-                  placeholder="Username"
-                  required={true}
-                  shadow={true}
-                  className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
-                />
+            <div>
+              <div className="mb-2 block">
+                <label
+                  className='sr-only'
+                  htmlFor="username">Username</label>
               </div>
-              <div>
-                <div className="mb-2 block">
-                  <label
-                    className='sr-only'
-                    htmlFor="password">Username</label>
-                </div>
-                <input
-                  id="password"
-                  name='password'
-                  type="password"
-                  placeholder="Password"
-                  required={true}
-                  shadow={true}
-                  className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
-                />
+              <input
+                id="username"
+                name='username'
+                type="text"
+                placeholder="Username *"
+                required={true}
+                shadow={true}
+                onChange={(e) => {setUsername(e.currentTarget.value)}}
+                className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
+              />
+              {
+                isValidUser === false &&
+                <div className='pt-2 italic text-red-500 font-semibold'>Provide a valid username</div>
+              }
+            </div>
+            <div>
+              <div className="mb-2 block">
+                <label
+                  className='sr-only'
+                  htmlFor="password">Password</label>
               </div>
-              <div>
-                <div className="mb-2 block">
-                  <label
-                    className='sr-only'
-                    htmlFor="confirmPassword">Username</label>
+              <input
+                id="password"
+                name='password'
+                type="password"
+                placeholder="Password"
+                required={true}
+                shadow={true}
+                onChange={(e) => {setPassword(e.currentTarget.value)}}
+                className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
+              />
+              {
+                passValidateValues.length <= 0 &&
+                <div className='flex flex-col gap-[1px] py-1'>
+                  <p className='font-semibold text-cyan-500'>Password must contain the following:</p>
+                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Lowercase letter(s)</span>
+                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Uppercase letter(s)</span>
+                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Number(s)</span>
+                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Minimum 8 characters</span>
                 </div>
-                <input
-                  id="confirmPassword"
-                  name='confirmPassword'
-                  type="password"
-                  placeholder="Confirm Password"
-                  required={true}
-                  shadow={true}
-                  className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
-                />
+              }
+            </div>
+            <div>
+              <div className="mb-2 block">
+                <label
+                  className='sr-only'
+                  htmlFor="confirmPassword">Username</label>
               </div>
-              <button className='shadow-lg shadow-cyan-100 mt-2 py-2.5 rounded-lg text-white bg-cyan-500 font-semibold' type="button" onClick={() => {registerUser(document.querySelector(`.register-user`))}}>
-                Sign Up
-              </button>
-            </form>
+              <input
+                id="confirmPassword"
+                name='confirmPassword'
+                type="password"
+                placeholder="Confirm Password"
+                required={true}
+                shadow={true}
+                onChange={(e) => {setConfirmPassword(e.currentTarget.value)}}
+                className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
+              />
+              {<span className='inline-flex pt-2 italic text-red-500 font-semibold'>Confirm password is required!</span>}
+            </div>
+            <button className='shadow-lg shadow-cyan-100 mt-2 py-2.5 rounded-lg text-white bg-cyan-500 font-semibold' type="button" onClick={() => {registerUser()}}>
+              Sign Up
+            </button>
+          </form>
           <form>
             <p className='text-center pb-3'>-- or sign up with --</p>
             <div className='flex justify-center justify-around'>
