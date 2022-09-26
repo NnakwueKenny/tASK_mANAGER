@@ -27,65 +27,189 @@ const Register = (props) => {
   const [isValidEmail, setIsValidEmail] = useState('');
   const [isValidUser, setIsValidUser] = useState('');
   const [isValidPass, setIsValidPass] = useState('');
-  const [isValidConfirmPass, setIsValidConfirmPAss] = useState('');
+  const [isValidConfirmPass, setIsValidConfirmPass] = useState('');
 
-  const [passValidateValues, setPassValidateValues] = useState([]);
+  const [passValidateValues, setPassValidateValues] = useState({});
 
   const validateEmail = (email) => {
     const validRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 
-    if (email.split(' ').join('').length > 0) {
-      if (email.match(validRegex)) {
+    if (email.split(' ').join('').length > 0 && email.match(validRegex)) {
         setIsValidEmail(true);
         return true;
-      } else {
-        setIsValidEmail(false);
-        return false;
-      }
     } else {
       setIsValidEmail(false);
+      timeoutDisplay(setIsValidEmail, true);
+      return false;
     }
   }
 
   const validateUserName = (username) => {
     if (username.length >= 8 && /\s/.test(username) === false) {
-      console.log(username.length);
       setIsValidUser(true);
+      return true;
     } else {
       setIsValidUser(false);
-      timeoutDisplay(setIsValidUser, '');
+      timeoutDisplay(setIsValidUser, true);
+      return false;
     }
   }
 
-  const validatePassword = (password) => {
-    console.log('');
+  const validatePassword = (password, confirmPass) => {
     const matchLowerCaseLetters = password.match(/[a-z]/g);
     const matchUpperCaseLetters = password.match(/[A-Z]/g);
     const matchNumbers = password.match(/[0-9]/g);
+    const specialCharacters = /^(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;"'<>,.?/_₹]).*$/;
+
     if (matchLowerCaseLetters && matchUpperCaseLetters && matchNumbers && password.length >= 8) {
-      console.log('Password has lowercase letter(s)');
-      setPassValidateValues([]);
+      if (password !== confirmPass) {
+        setIsValidConfirmPass(false);
+        timeoutDisplay(setIsValidConfirmPass, true);
+        return false;
+      } else {
+        setIsValidPass(true);
+        setIsValidConfirmPass(true);
+        return true;
+      }
     } else {
-      if (!matchLowerCaseLetters) {
+      console.log('Fill  in the passwords field');
+      if (specialCharacters.test(password)) {
         setPassValidateValues(prevData => {
-          return [
+          return {
             ...prevData,
-  
-          ]
+            matchSpecial: {
+              color: 'green',
+              check: true,
+              'value': 'Special Character(s)'
+            }
+          }
+        });
+      } else {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchSpecial: {
+              color: 'red',
+              check: false,
+              'value': 'Special Character(s)'
+            }
+          }
         });
       }
-      setPassValidateValues(prevData => {
-        return [
-          ...prevData,
 
-        ]
-      });
+      if (matchLowerCaseLetters) {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchLowerCase: {
+              color: 'green',
+              check: true,
+              'value': 'Lowercase letter(s)'
+            }
+          }
+        });
+      } else {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchLowerCase: {
+              color: 'red',
+              check: false,
+              'value': 'Lowercase letter(s)'
+            }
+          }
+        });
+      }
+      
+      if (matchUpperCaseLetters) {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchUpperCase: {
+              color: 'green',
+              check: true,
+              value: 'Uppercase letter(s)'
+            }
+          }
+        });
+      } else {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchUpperCase: {
+              color: 'red',
+              check: false,
+              value: 'Uppercase letter(s)'
+            }
+          }
+        });
+      }
+      
+      if (matchNumbers) {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchNumber: {
+              color: 'green',
+              check: true,
+              value: 'Number(s)'
+            }
+          }
+        });
+      } else {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchNumber: {
+              color: 'red',
+              check: false,
+              value: 'Number(s)'
+            }
+          }
+        });
+      }
+
+      if (password.length >= 8) {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchLength: {
+              color: 'green',
+              check: true,
+              value: 'Minimum 8 characters'
+            }
+          }
+        });
+      } else {
+        setPassValidateValues(prevData => {
+          return {
+            ...prevData,
+            matchLength: {
+              color: 'red',
+              check: false,
+              value: 'Minimum 8 characters'
+            }
+          }
+        });
+      }
+
+      return false;
     }
   }
 
   const validateForm = async(email, username, password, confirmPassword) => {
-    validateEmail(email);
-    validateUserName(username);
+    const emailValidate = validateEmail(email);
+    const userNameValidate = validateUserName(username);
+    const passValidate = validatePassword(password, confirmPassword);
+    console.log(emailValidate);
+    console.log(userNameValidate);
+    console.log(passValidate);
+    if (emailValidate && userNameValidate && passValidate) {
+      console.log('Successful validation')
+      return true
+    } else {
+      return false;
+    }
   }
 
   useEffect(() => {
@@ -97,44 +221,52 @@ const Register = (props) => {
         confirmPassword: confirmPassword
       }
     })
-  },[email, username, password, confirmPassword])
+  },[email, username, password, confirmPassword]);
 
   const registerUser = async () => {
-    validateForm(email, username);
+    const formValidate = validateForm(email, username, password, confirmPassword);
+    // console.log(formValidate.then((res) => {
+    //   return res
+    // }).then(data => data))
+    if (validateForm(email, username, password, confirmPassword) === false) {
+      console.log('Please, validate all form fields!')
+    } else {
+      console.log('All form fields have been validated!')
     // setLoading(true);
-    await fetch('http://localhost:3500/user/register',
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        method: 'post',
-        body: JSON.stringify(formData)
-      }
-    )
-    .then(res => res.json())
-    .then(data => {
-      setLoading(false);
-      const {error, passwordMismatch, message} = data;
-      console.log(error, passwordMismatch, message);
-      if (error) {
-        setErrorMessage(error);
-        setTimeout(() => {
-          setErrorMessage('')
-        }, 3000);
-      } else if (message) {
-        setRegisterMessage(message);
-      } else if (passwordMismatch) {
-        setErrorMessage(passwordMismatch);
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 3000);
-      }
-    })
-    .catch(err => {
-      return {
-        err: err.json()
-      }
-    });
+      await fetch('http://localhost:3500/user/register',
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'post',
+          body: JSON.stringify(formData)
+        }
+      )
+      .then(res => res.json())
+      .then(data => {
+        setLoading(false);
+        const {error, passwordMismatch, message} = data;
+        console.log(error, passwordMismatch, message);
+        if (error) {
+          setErrorMessage(error);
+          setTimeout(() => {
+            setErrorMessage('')
+          }, 3000);
+        } else if (message) {
+          setRegisterMessage(message);
+        } else if (passwordMismatch) {
+          setErrorMessage(passwordMismatch);
+          setTimeout(() => {
+            setErrorMessage('');
+          }, 3000);
+        }
+      })
+      .catch(err => {
+        return {
+          err: err.json()
+        }
+      });
+    }
   }
   
   const darkMode = props.darkMode? 'text-gray-50  bg-gray-800': 'text-gray-500';
@@ -229,13 +361,17 @@ const Register = (props) => {
                 className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
               />
               {
-                passValidateValues.length <= 0 &&
+                Object.keys(passValidateValues).length > 0 &&
                 <div className='flex flex-col gap-[1px] py-1'>
                   <p className='font-semibold text-cyan-500'>Password must contain the following:</p>
-                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Lowercase letter(s)</span>
-                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Uppercase letter(s)</span>
-                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Number(s)</span>
-                  <span className='italic text-red-500'><i className='fa fa-check'></i><i className='fa fa-times'></i> Minimum 8 characters</span>
+                  {
+                    Object.values(passValidateValues).map((item) => {
+                      return <span className={`italic text-${item.color}-500`}>
+                        { item.check? <i className='fa fa-check'></i>: <i className='fa fa-times'></i> }
+                        {item.value}
+                      </span>
+                    })
+                  }
                 </div>
               }
             </div>
@@ -255,7 +391,10 @@ const Register = (props) => {
                 onChange={(e) => {setConfirmPassword(e.currentTarget.value)}}
                 className='py-3 shadow-md shadow-gray-300 border-0 border-t border-gray-200 rounded-lg w-full required'
               />
-              {<span className='inline-flex pt-2 italic text-red-500 font-semibold'>Confirm password is required!</span>}
+              {
+                isValidConfirmPass === false && 
+                <span className='inline-flex pt-2 italic text-red-500 font-semibold'>Password does not match with first</span>
+              }
             </div>
             <button className='shadow-lg shadow-cyan-100 mt-2 py-2.5 rounded-lg text-white bg-cyan-500 font-semibold' type="button" onClick={() => {registerUser()}}>
               Sign Up
